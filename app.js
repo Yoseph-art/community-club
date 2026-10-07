@@ -34,7 +34,7 @@ const STATUS = { active: ['Active', 'good'], injured: ['Injured', 'bad'], suspen
 const ATT = { P: 'Present', L: 'Late', E: 'Excused', A: 'Absent' };
 const AVAIL = { yes: 'Available', maybe: 'Maybe', no: 'Unavailable' };
 const TAGS = ['Improvement', 'Strength', 'Concern', 'General'];
-const BIBS = ['Gold bibs', 'Blue bibs', 'White bibs', 'Red bibs'];
+const BIBS = ['Orange bibs', 'Black bibs', 'White bibs', 'Red bibs'];
 
 // Shapes by players per side. "GK" = has a keeper; numbers = outfield lines from the back.
 const SHAPES = {
@@ -116,7 +116,7 @@ const openMatches = () => db().matches.filter((m) => m.status !== 'played').sort
 const result = (m) => (m.ourScore > m.theirScore ? 'W' : m.ourScore < m.theirScore ? 'L' : 'D');
 const isSplit = (m) => m.mode !== 'opponent';
 const vsGames = (list) => list.filter((m) => !isSplit(m));
-const TEAM_NAME = { A: 'Gold', B: 'Blue' };
+const TEAM_NAME = { A: 'Orange', B: 'Black' }; // the club's bib colours
 const gameTitle = (m) => teams(m).map((t) => t.name).join(' v ');
 const headcount = (m) => (m.lineup || []).filter(Boolean).length + (m.lineupB || []).filter(Boolean).length + (m.bench || []).length;
 // Short match-centre meta line: NEXT · WED 8 OCT · 5v5 · KISASI TURF (time sits under the score)
@@ -225,7 +225,7 @@ const pageHead = (title, eyebrow, actions = '', back = '') => `<div class="topba
 const backLink = (href, label) => `<a class="backlink" href="${href}">${icon('back')} ${esc(label)}</a>`;
 const tabs = (name, items, on) => `<div class="tabs" role="tablist">${items.map(([k, l, c]) => `<button type="button" role="tab" aria-selected="${k === on}" class="${k === on ? 'on' : ''}" data-action="tab" data-tab="${name}" data-v="${k}">${esc(l)}${c != null ? `<span class="count">${c}</span>` : ''}</button>`).join('')}</div>`;
 
-const bibCrest = (t) => (t === 'A' ? crest('G', '#b8860b', '#f5b841') : crest('B', '#1f4fa8', '#6aa5ff'));
+const bibCrest = (t) => (t === 'A' ? crest('O', '#e8590c', '#ff922b') : crest('B', '#111111', '#4a4a4a'));
 function teams(m) {
   if (isSplit(m)) return [{ name: TEAM_NAME.A, crest: bibCrest('A'), us: false, score: m.ourScore }, { name: TEAM_NAME.B, crest: bibCrest('B'), us: false, score: m.theirScore }];
   const us = { name: db().club.name, crest: clubCrest(), us: true, score: m.ourScore };
@@ -1039,7 +1039,7 @@ function matchForm(m) {
   openForm({
     title: isNew ? 'New game' : 'Edit game', narrow: true,
     fields: [
-      { name: 'mode', label: 'Game', type: 'select', options: [['split', 'Gold v Blue (own players)'], ['opponent', 'v another team']], value: m.mode || 'split', span: true },
+      { name: 'mode', label: 'Game', type: 'select', options: [['split', 'Orange v Black (own players)'], ['opponent', 'v another team']], value: m.mode || 'split', span: true },
       { name: 'opponent', label: 'Opponent', value: m.opponent, span: true, placeholder: '' },
       { name: 'venue', label: 'Venue', type: 'select', options: [['H', 'Home'], ['A', 'Away']], value: m.venue },
       { name: 'competition', label: 'Competition', type: 'select', options: ['Friendly', 'League', 'Cup', 'Tournament'], value: m.competition },

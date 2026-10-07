@@ -20,6 +20,7 @@
   --warn: #9a6c00; --warn-bg: rgba(233, 185, 73, .2);
   --bad: #c9363c;  --bad-bg: rgba(201, 54, 60, .1);
   --info: #2b67cc; --info-bg: rgba(43, 103, 204, .1);
+  --bib-a: #f76707; --bib-a-ink: #160800; --bib-b: #111111; --bib-b-ink: #ffffff;
   --pitch: #2b7a4b; --pitch-2: #276f44; --chalk: rgba(255, 255, 255, .5);
   --shadow: 0 1px 2px rgba(15, 26, 45, .05), 0 8px 28px rgba(15, 26, 45, .06);
   --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
@@ -337,8 +338,8 @@ table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
 .team li { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 13px; }
 .team li .p { color: var(--faint); font-size: 11px; width: 26px; }
 .team li .n { flex: 1; }
-.bib-0 .team-h { background: var(--gold); color: var(--gold-ink); }
-.bib-1 .team-h { background: #2b67cc; color: #fff; }
+.bib-0 .team-h { background: var(--bib-a); color: var(--bib-a-ink); }
+.bib-1 .team-h { background: var(--bib-b); color: var(--bib-b-ink); }
 .bib-2 .team-h { background: #e9edf3; color: #111; }
 .bib-3 .team-h { background: #c9363c; color: #fff; }
 
@@ -356,16 +357,16 @@ table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
 .pitch.dense .slot { gap: 3px; }
 .pitch.dense .slot-dot { --d: clamp(28px, 8vw, 38px); font-size: clamp(12px, 2.2vw, 15px); }
 .pitch.dense .slot-name { font-size: clamp(9px, 1.4vw, 11px); }
-.slot.team-A .slot-dot:not(.vacant) { background: var(--gold); color: var(--gold-ink); }
-.slot.team-B .slot-dot:not(.vacant) { background: #2b67cc; color: #fff; }
-.slot.team-A .slot-dot.vacant { border-color: rgba(245, 184, 65, .8); }
-.slot.team-B .slot-dot.vacant { border-color: rgba(120, 170, 255, .85); }
+.slot.team-A .slot-dot:not(.vacant) { background: var(--bib-a); color: var(--bib-a-ink); }
+.slot.team-B .slot-dot:not(.vacant) { background: var(--bib-b); color: var(--bib-b-ink); }
+.slot.team-A .slot-dot.vacant { border-color: rgba(255, 146, 43, .95); }
+.slot.team-B .slot-dot.vacant { border-color: rgba(0, 0, 0, .8); background: rgba(0, 0, 0, .22); }
 .pitch-tag { position: absolute; left: 6%; z-index: 1; padding: 3px 9px; border-radius: 6px; font: 800 12px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; pointer-events: none; }
-.pitch-tag.tag-A { bottom: 4%; background: var(--gold); color: var(--gold-ink); }
-.pitch-tag.tag-B { top: 4%; background: #2b67cc; color: #fff; }
+.pitch-tag.tag-A { bottom: 4%; background: var(--bib-a); color: var(--bib-a-ink); }
+.pitch-tag.tag-B { top: 4%; background: var(--bib-b); color: var(--bib-b-ink); }
 .tstr { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; white-space: nowrap; }
-.tstr i { width: 10px; height: 10px; border-radius: 3px; background: var(--gold); }
-.tstr.team-B i { background: #2b67cc; }
+.tstr i { width: 10px; height: 10px; border-radius: 3px; background: var(--bib-a); }
+.tstr.team-B i { background: var(--bib-b); box-shadow: 0 0 0 1px rgba(255, 255, 255, .45); }
 .slot.sel .slot-dot { outline: 3px solid var(--gold); outline-offset: 2px; }
 .slot.target .slot-dot.vacant { border-color: var(--gold); background: rgba(245, 184, 65, .2); }
 .slot .rt { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); min-width: 26px; font-size: 10px; padding: 1px 3px; }

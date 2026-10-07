@@ -675,7 +675,7 @@ function matchLineup(m) {
       const isSel = sel && sel.from === 'slot' && sel.team === team && sel.i === i;
       const st = p && m.stats[p.id];
       return `<button type="button" class="slot ${split ? 'team-' + team : ''} ${p ? 'filled' : ''} ${isSel ? 'sel' : ''} ${sel && !p ? 'target' : ''}" style="left:${x}%;top:${y}%" data-action="slot" data-team="${team}" data-i="${i}" data-drop="slot:${team}:${i}" ${p ? `draggable="true" data-drag="${p.id}"` : ''} aria-label="${split ? TEAM_NAME[team] + ' ' : ''}${role}${p ? ': ' + esc(fullName(p)) : ' (empty)'}">
-        ${p ? `<span class="slot-dot">${p.photo ? `<img src="${p.photo}" alt="">` : esc(p.jersey ?? initials(p))}${played && st?.rating ? rating(+st.rating) : ''}${events(p.id)}</span><span class="slot-name">${esc(p.last)}</span>` : `<span class="slot-dot empty">${role}</span><span class="slot-name">&nbsp;</span>`}
+        ${p ? `<span class="slot-dot">${p.photo ? `<img src="${p.photo}" alt="">` : esc(p.jersey ?? initials(p))}${played && st?.rating ? rating(+st.rating) : ''}${events(p.id)}</span><span class="slot-name">${esc(p.last)}</span>` : `<span class="slot-dot vacant">${role}</span><span class="slot-name">&nbsp;</span>`}
       </button>`;
     }).join('');
   }).join('');

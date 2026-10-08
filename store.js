@@ -12,7 +12,7 @@ const Store = (() => {
   let db = null, me = null, base = new Map(), saving = Promise.resolve(), failing = false, retryT = null, laterT = null, lastPull = 0;
 
   const empty = () => ({
-    club: { name: 'Community Club', short: 'CC', season: '2026', defaultVenue: '' },
+    club: { name: 'Muyenga Community Club', short: 'MCC', season: '2026', defaultVenue: '' },
     players: [], sessions: [], matches: [], comments: [], skills: [], injuries: [],
     isSample: false,
   });

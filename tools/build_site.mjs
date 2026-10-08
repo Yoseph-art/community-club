@@ -38,7 +38,8 @@ if (bad.length) { console.error('Refusing to build: these look like personal det
 
 const cfg = out.replace(/[\\/]+$/, '') + '.wrangler.jsonc';
 writeFileSync(cfg, JSON.stringify({
-  name: 'community-club', compatibility_date: '2026-10-01',
+  name: 'community-club', account_id: '72b9828fc50eb8beac260fb076f5b266', // Thomas (Dt2600@outlook.com)
+  compatibility_date: '2026-10-01',
   workers_dev: true, preview_urls: false,
   assets: { directory: './' + out.replace(/[\\/]+$/, '').split(/[\\/]/).pop() },
 }, null, 2));

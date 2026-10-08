@@ -1,7 +1,7 @@
 {
-  "name": "Community Club Matchday",
-  "short_name": "Matchday",
-  "description": "Squad, training, games and injuries for Community Club",
+  "name": "Muyenga Community Club",
+  "short_name": "Muyenga CC",
+  "description": "Squad, training, games and injuries for Muyenga Community Club",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

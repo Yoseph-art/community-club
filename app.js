@@ -1,4 +1,4 @@
-/* Community Club — football hub. Plain JavaScript, no build step. */
+/* Muyenga Community Club — football hub. Plain JavaScript, no build step. */
 (() => {
 'use strict';
 
@@ -95,7 +95,7 @@ function crest(text, color, stripe) {
   const fs = t.length > 2 ? 11 : 14;
   return `<svg viewBox="0 0 40 46" aria-hidden="true"><path d="M20 1.5L37 7v14c0 11-7.4 19.6-17 23.5C10.4 40.6 3 32 3 21V7z" fill="${color}" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/><path d="M3 15h34v6H3z" fill="${stripe}" opacity=".9"/><text x="20" y="${t.length > 2 ? 34 : 35}" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="${fs}" fill="#fff">${t}</text></svg>`;
 }
-const clubCrest = () => crest(db()?.club?.short || 'CC', '#0f1830', '#f5b841');
+const clubCrest = () => crest(db()?.club?.short || 'MCC', '#0f1830', '#f5b841');
 const oppCrest = (name) => { const h = hash(name); const hues = [355, 210, 140, 28, 265, 190, 95, 320]; const hue = hues[h % hues.length]; return crest(oppShort(name), `hsl(${hue} 55% 38%)`, `hsl(${hue} 70% 70%)`); };
 const oppShort = (name) => String(name || '?').split(/\s+/).map((w) => w[0]).join('').slice(0, 3);
 
@@ -1164,7 +1164,7 @@ document.addEventListener('submit', (e) => {
   if (e.target.id === 'clubForm') {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
-    Object.assign(db().club, { name: d.name.trim() || 'Community Club', short: d.short.trim().toUpperCase() || 'CC', season: d.season.trim(), defaultVenue: d.defaultVenue.trim() });
+    Object.assign(db().club, { name: d.name.trim() || 'Muyenga Community Club', short: d.short.trim().toUpperCase() || 'MCC', season: d.season.trim(), defaultVenue: d.defaultVenue.trim() });
     save('Saved');
   }
   if (e.target.id === 'resultForm') {
@@ -1206,7 +1206,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => re
 const ROLE_LABEL = { admin: 'Admin', editor: 'Editor' };
 function authFrame(inner) {
   const el = $('#auth');
-  el.innerHTML = `<div class="auth-card"><div class="auth-brand">${clubCrest()}<div><strong>${esc(db()?.club?.name || 'Community Club')}</strong><span>Matchday</span></div></div>${inner}</div>
+  el.innerHTML = `<div class="auth-card"><div class="auth-brand">${clubCrest()}<div><strong>${esc(db()?.club?.name || 'Muyenga Community Club')}</strong><span>Matchday</span></div></div>${inner}</div>
     <p class="auth-foot">${icon('alert')} Only people with an account can sign in. Every change is recorded.</p>`;
   el.hidden = false; $('.app').hidden = true;
   return el;

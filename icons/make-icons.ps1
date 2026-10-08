@@ -14,9 +14,9 @@ foreach ($s in 64, 192, 512) {
   $g.FillPath((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(24, 35, 61))), $p)
   $g.SetClip($p); $g.FillRectangle((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(245, 184, 65))), 0, 36*$k, $s, 10*$k); $g.ResetClip()
   $g.DrawPath((New-Object System.Drawing.Pen ([System.Drawing.Color]::White), (2.4*$k)), $p)
-  $f = New-Object System.Drawing.Font 'Arial Black', (17*$k), ([System.Drawing.FontStyle]::Bold), ([System.Drawing.GraphicsUnit]::Pixel)
+  $f = New-Object System.Drawing.Font 'Arial Black', (13*$k), ([System.Drawing.FontStyle]::Bold), ([System.Drawing.GraphicsUnit]::Pixel)
   $sf = New-Object System.Drawing.StringFormat; $sf.Alignment = 'Center'; $sf.LineAlignment = 'Center'
-  $g.DrawString('CC', $f, [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF 0, (54*$k), $s, (24*$k)), $sf)
+  $g.DrawString('MCC', $f, [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF 0, (54*$k), $s, (24*$k)), $sf)
   $b.Save("$PSScriptRoot\icon-$s.png", [System.Drawing.Imaging.ImageFormat]::Png)
   $g.Dispose(); $b.Dispose()
 }

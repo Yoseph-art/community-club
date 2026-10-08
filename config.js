@@ -1,0 +1,9 @@
+/* The club's online database (Supabase). Empty = the app runs on this device only.
+ * The publishable key is meant to be public: what each signed-in person may do is decided by the
+ * database itself (supabase/schema.sql). On this computer, open http://localhost:5070/?local to
+ * use the one-device version even when this is filled in. */
+const CC_CONFIG = {
+  url: '',
+  key: '',
+  dashboard: '',
+};

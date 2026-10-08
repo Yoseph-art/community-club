@@ -95,7 +95,7 @@ function crest(text, color, stripe) {
   const fs = t.length > 2 ? 11 : 14;
   return `<svg viewBox="0 0 40 46" aria-hidden="true"><path d="M20 1.5L37 7v14c0 11-7.4 19.6-17 23.5C10.4 40.6 3 32 3 21V7z" fill="${color}" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/><path d="M3 15h34v6H3z" fill="${stripe}" opacity=".9"/><text x="20" y="${t.length > 2 ? 34 : 35}" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="${fs}" fill="#fff">${t}</text></svg>`;
 }
-const clubCrest = () => crest(db().club.short || 'CC', '#0f1830', '#f5b841');
+const clubCrest = () => crest(db()?.club?.short || 'CC', '#0f1830', '#f5b841');
 const oppCrest = (name) => { const h = hash(name); const hues = [355, 210, 140, 28, 265, 190, 95, 320]; const hue = hues[h % hues.length]; return crest(oppShort(name), `hsl(${hue} 55% 38%)`, `hsl(${hue} 70% 70%)`); };
 const oppShort = (name) => String(name || '?').split(/\s+/).map((w) => w[0]).join('').slice(0, 3);
 
@@ -262,7 +262,7 @@ function renderShell(route) {
   const counts = { players: squad().length, health: activeInjuries().length || '' };
   $('#nav').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" class="${navKey === k ? 'on' : ''}">${icon(ic)}${esc(l)}${counts[k] ? `<span class="count">${counts[k]}</span>` : ''}</a>`).join('');
   const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
-  $('#sideFoot').innerHTML = `<button class="btn btn-sm" type="button" data-action="theme">${icon(dark ? 'sun' : 'moon')} ${dark ? 'Light mode' : 'Dark mode'}</button><span>Saved on this device</span>`;
+  $('#sideFoot').innerHTML = `<button class="btn btn-sm" type="button" data-action="theme">${icon(dark ? 'sun' : 'moon')} ${dark ? 'Light mode' : 'Dark mode'}</button>${Store.cloud && Store.me ? `<span><b>${esc(Store.me.name)}</b> · ${ROLE_LABEL[Store.me.role]}</span><button class="btn btn-sm" type="button" data-action="sign-out">Sign out</button>` : '<span>Saved on this device</span>'}`;
   const mob = [['dashboard', 'Home', 'home'], ['players', 'Squad', 'squad'], ['training', 'Training', 'training'], ['matches', 'Games', 'ball'], ['more', 'More', 'more']];
   const mobKey = ['health', 'settings'].includes(navKey) ? 'more' : navKey;
   $('#tabbar').innerHTML = mob.map(([k, l, ic]) => `<a href="#/${k}" class="${mobKey === k ? 'on' : ''}">${icon(ic)}${l}</a>`).join('');
@@ -275,10 +275,12 @@ function render() {
   const view = VIEWS[route] || VIEWS.dashboard;
   renderShell(route);
   $('#view').innerHTML = `<div class="page">${view(id)}</div>`;
+  if (route === 'settings' && Store.cloud && Store.isAdmin) { loadAccounts(); loadAudit(); }
   document.title = `${db().club.name} Matchday`;
 }
 let lastRoute = '';
 window.addEventListener('hashchange', () => {
+  if (!db()) return; // signed out: the sign-in screen is showing
   const r = location.hash.split('/').slice(0, 3).join('/');
   if (r !== lastRoute) { ui.sel = null; ui.matchTab = ui.nextTab || null; ui.nextTab = null; if (!r.startsWith('#/player/')) ui.playerTab = 'overview'; window.scrollTo(0, 0); }
   lastRoute = r;
@@ -828,6 +830,8 @@ VIEWS.health = () => {
 // ============ SETTINGS / MORE ============
 VIEWS.settings = () => {
   const c = db().club;
+  const admin = Store.isAdmin;
+  const online = Store.cloud;
   return `${pageHead('Settings', '')}
   <form class="card" id="clubForm"><div class="card-h"><h2>Club</h2></div><div class="card-b"><div class="fgrid">
     <label class="fld"><span>Name</span><input name="name" id="set_name" value="${esc(c.name)}" required></label>
@@ -835,17 +839,21 @@ VIEWS.settings = () => {
     <label class="fld"><span>Season</span><input name="season" id="set_season" value="${esc(c.season)}"></label>
     <label class="fld"><span>Home turf</span><input name="defaultVenue" id="set_venue" value="${esc(c.defaultVenue || '')}"></label>
   </div></div><div class="card-b" style="border-top:1px solid var(--line);display:flex;justify-content:flex-end"><button class="btn btn-primary" type="submit">${icon('check')} Save</button></div></form>
-  <div class="card"><div class="card-h"><h2>Data</h2><span class="sub">Saved on this device</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+  ${online ? `<div class="card"><div class="card-h"><h2>You</h2><span class="sub">${esc(Store.me.email)} · ${ROLE_LABEL[Store.me.role]}</span></div><div class="card-b" style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn" type="button" data-action="change-pw">Change password</button><button class="btn" type="button" data-action="pull-now">Refresh data</button><button class="btn" type="button" data-action="sign-out">Sign out</button></div></div>` : ''}
+  ${online && admin ? `<div class="card"><div class="card-h"><h2>Accounts</h2><span style="display:flex;gap:6px"><button class="btn btn-sm" type="button" data-action="refresh-acct">Refresh</button><button class="btn btn-primary btn-sm" type="button" data-action="add-acct">${icon('plus')} Add</button></span></div><div id="acct"><div class="card-b hint">Loading…</div></div></div>` : ''}
+  <div class="card"><div class="card-h"><h2>Data</h2><span class="sub">${online ? 'Shared online' : 'Saved on this device'}</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" type="button" data-action="backup">${icon('download')} Backup</button>
-      <label class="btn">${icon('upload')} Restore<input type="file" id="restoreFile" accept="application/json,.json" hidden></label>
+      ${admin ? `<label class="btn">${icon('upload')} Restore<input type="file" id="restoreFile" accept="application/json,.json" hidden></label>` : ''}
       <button class="btn" type="button" data-action="export-csv">${icon('download')} Squad CSV</button>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px">
-      ${db().isSample ? `<button class="btn btn-danger" type="button" data-action="clear-sample">Clear sample data</button>` : `<button class="btn" type="button" data-action="load-sample">Load sample data</button><button class="btn btn-danger" type="button" data-action="wipe">Delete all data</button>`}
-    </div></div></div>`;
+    ${admin ? `<div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px">
+      ${db().isSample ? `<button class="btn btn-danger" type="button" data-action="clear-sample">Clear sample data</button>` : `${online ? '' : '<button class="btn" type="button" data-action="load-sample">Load sample data</button>'}<button class="btn btn-danger" type="button" data-action="wipe">Delete all data</button>`}
+    </div>` : ''}</div></div>
+  ${online && admin ? `<div class="card"><div class="card-h"><h2>Activity</h2><span class="sub">Last 120</span></div><div id="audit"><div class="card-b hint">Loading…</div></div></div>` : ''}`;
 };
-VIEWS.more = () => `${pageHead('More', '')}<div class="card more-list">${NAV.slice(4).map(([k, l, ic]) => `<a href="#/${k}">${icon(ic)}${l}</a>`).join('')}<a href="#" data-action="theme">${icon('moon')}Light / dark</a></div>`;
+VIEWS.more = () => `${pageHead('More', '')}<div class="card more-list">${NAV.slice(4).map(([k, l, ic]) => `<a href="#/${k}">${icon(ic)}${l}</a>`).join('')}<a href="#" data-action="theme">${icon('moon')}Light / dark</a>${Store.cloud ? `<a href="#" data-action="sign-out">${icon('back')}Sign out · ${esc(Store.me ? Store.me.name : '')}</a>` : ''}</div>`;
 
 // ============ modal / forms ============
 function field(f) {
@@ -1121,16 +1129,22 @@ const A = {
   'clear-lineup': () => { const m = curMatch(); const before = { lineup: (m.lineup || []).slice(), lineupB: (m.lineupB || []).slice(), bench: (m.bench || []).slice() }; m.lineup = []; m.lineupB = []; m.bench = []; ui.sel = null; save(); toast('Cleared', '', () => { Object.assign(m, before); save(); }); },
   unplay: (el) => { const m = db().matches.find((x) => x.id === el.dataset.mid); m.status = 'upcoming'; save('Moved to fixtures'); },
   'export-csv': exportCsv,
+  'sign-out': (el, e) => { e.preventDefault(); signOut(); },
+  'change-pw': () => authNewPw(false),
+  'add-acct': addAccountSteps,
+  'refresh-acct': () => { $('#acct').innerHTML = '<div class="card-b hint">Loading…</div>'; loadAccounts(); },
+  acct: (el) => accountForm(el.dataset.id),
+  'pull-now': () => Store.pull().then(() => { render(); toast('Up to date'); }, (x) => toast(Cloud.friendly(x), 'bad')),
   backup: () => { download(`${db().club.name.replace(/\W+/g, '-').toLowerCase()}-backup-${today()}.json`, JSON.stringify(db(), null, 1), 'application/json'); toast('Backup downloaded'); },
-  'clear-sample': () => openConfirm('Clear sample data?', 'Removes all made-up players, sessions and games. Club settings stay.', 'Clear', () => { Store.clearAll(); location.hash = '#/players'; save('Cleared'); }),
+  'clear-sample': () => openConfirm('Clear sample data?', 'Removes all made-up players, sessions and games. Club settings stay.', 'Clear', () => Store.clearAll().then(() => { location.hash = '#/players'; save('Cleared'); })),
   'load-sample': () => openConfirm('Load sample data?', 'Replaces everything saved. Back up first.', 'Load', () => { Store.loadSample(); location.hash = '#/dashboard'; save('Sample data loaded'); }),
-  wipe: () => openConfirm('Delete all data?', 'Every player, session, game and injury on this device. Cannot be undone without a backup.', 'Delete all', () => { Store.clearAll(); location.hash = '#/dashboard'; save('Deleted'); }),
+  wipe: () => openConfirm('Delete all data?', Store.cloud ? 'Every player, session, game and injury, for everyone. Cannot be undone without a backup.' : 'Every player, session, game and injury on this device. Cannot be undone without a backup.', 'Delete all', () => Store.clearAll().then(() => { location.hash = '#/dashboard'; save('Deleted'); }, (x) => toast(Cloud.friendly(x), 'bad'))),
 };
 
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-action]');
   if (!el || !A[el.dataset.action]) return;
-  if (el.tagName === 'A' && el.dataset.action !== 'theme') return;
+  if (el.tagName === 'A' && !['theme', 'sign-out'].includes(el.dataset.action)) return;
   A[el.dataset.action](el, e);
 });
 document.addEventListener('input', (e) => {
@@ -1142,7 +1156,7 @@ document.addEventListener('change', (e) => {
   if (['sideSize', 'shapeA', 'shapeB'].includes(t.id)) { const m = curMatch(); if (t.id === 'sideSize') m.sideSize = t.value ? Number(t.value) : null; else m[t.id] = t.value; syncLineup(m); ui.sel = null; save(); }
   if (t.id === 'restoreFile' && t.files[0]) {
     const fr = new FileReader();
-    fr.onload = () => { try { const d = JSON.parse(fr.result); if (!Array.isArray(d.players) || !d.club) throw new Error(); openConfirm('Restore backup?', `${plural(d.players.length, 'player')} · ${plural((d.matches || []).length, 'game')}. Replaces current data.`, 'Restore', () => { Store.replace(d); save('Backup restored'); }); } catch (_) { toast('Not a backup file', 'bad'); } t.value = ''; };
+    fr.onload = () => { try { const d = JSON.parse(fr.result); if (!Array.isArray(d.players) || !d.club) throw new Error(); openConfirm('Restore backup?', `${plural(d.players.length, 'player')} · ${plural((d.matches || []).length, 'game')}. Replaces current data.`, 'Restore', () => Store.replace(d).then(() => save('Backup restored'), (x) => toast(Cloud.friendly(x), 'bad'))); } catch (_) { toast('Not a backup file', 'bad'); } t.value = ''; };
     fr.readAsText(t.files[0]);
   }
 });
@@ -1188,19 +1202,187 @@ document.addEventListener('drop', (e) => {
 document.addEventListener('dragend', () => { ui.drag = null; });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => render());
 
-// ============ start ============
-Store.load();
-// Fees were dropped; older saves used fixed 11-a-side formations
-delete db().payments; ['monthlyFee', 'currency', 'feeStart'].forEach((k) => delete db().club[k]);
-db().matches.forEach((m) => {
-  if (!m.mode) m.mode = m.opponent ? 'opponent' : 'split';
-  if (m.formation) {
-    const shape = m.formation.replace(/^.*?(\d[\d-]*)$/, '$1');
-    const k = shape.split('-').reduce((a, b) => a + +b, 1);
-    if (SHAPES[k]?.includes('GK ' + shape)) { m.sideSize = m.sideSize || k; m.shapeA = m.shapeA || 'GK ' + shape; }
-    delete m.formation;
-  }
+// ============ online: sign in, accounts, audit (same flow as TM Bweyogerere) ============
+const ROLE_LABEL = { admin: 'Admin', editor: 'Editor' };
+function authFrame(inner) {
+  const el = $('#auth');
+  el.innerHTML = `<div class="auth-card"><div class="auth-brand">${clubCrest()}<div><strong>${esc(db()?.club?.name || 'Community Club')}</strong><span>Matchday</span></div></div>${inner}</div>
+    <p class="auth-foot">${icon('alert')} Only people with an account can sign in. Every change is recorded.</p>`;
+  el.hidden = false; $('.app').hidden = true;
+  return el;
+}
+const pwField = (name, label, auto) => `<label class="fld" for="a_${name}"><span>${label}</span><input id="a_${name}" type="password" name="${name}" autocomplete="${auto}" required minlength="10"></label>`;
+function pwProblem(pw, email) {
+  if (!pw || pw.length < 10) return 'Use at least 10 characters. A short sentence works well.';
+  if (/^(.)\1+$/.test(pw) || /^(password|1234567890|qwerty)/i.test(pw)) return 'Too easy to guess.';
+  if (email && pw.toLowerCase().includes(String(email).split('@')[0].toLowerCase())) return "Don't use your email in the password.";
+  return '';
+}
+
+function authLogin(msg = '', email = '') {
+  const el = authFrame(`<h1>Sign in</h1>${msg ? `<p class="auth-note">${esc(msg)}</p>` : ''}
+    <form id="authForm" class="auth-form">
+      <label class="fld" for="a_email"><span>Email</span><input id="a_email" type="email" name="email" required autocomplete="username" value="${esc(email)}"></label>
+      ${pwField('pw', 'Password', 'current-password')}
+      <p class="auth-err" id="authErr" role="alert"></p>
+      <button class="btn btn-primary" type="submit">Sign in</button>
+    </form>
+    <p class="hint"><button type="button" class="linkbtn" id="forgot">Forgot password?</button> We email you a link to set a new one.</p>`);
+  const f = $('#authForm', el);
+  (email ? f.pw : f.email).focus();
+  $('#forgot', el).onclick = async () => {
+    if (!f.email.value) { $('#authErr').textContent = 'Type your email first.'; f.email.focus(); return; }
+    try { await Cloud.sendReset(f.email.value); authLogin('Check your email for a link to set a new password.', f.email.value); } catch (x) { $('#authErr').textContent = Cloud.friendly(x); }
+  };
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = f.querySelector('button'); btn.disabled = true; btn.textContent = 'Checking…';
+    const r = await Store.login(f.email.value, f.pw.value);
+    if (r.error) { $('#authErr').textContent = r.error; btn.disabled = false; btn.textContent = 'Sign in'; f.pw.value = ''; f.pw.focus(); return; }
+    afterAdmit(r);
+  };
+}
+function authClaim(email) {
+  const el = authFrame(`<h1>Set up</h1><p class="hint">Nobody has been set up yet, so you (${esc(email || '')}) become the first admin. You give everyone else their role in Settings → Accounts.</p>
+    <form id="authForm" class="auth-form">
+      <label class="fld" for="a_name"><span>Your name</span><input id="a_name" name="name" required minlength="2" autocomplete="name"></label>
+      <p class="auth-err" id="authErr" role="alert"></p>
+      <button class="btn btn-primary" type="submit">Become admin</button>
+    </form>`);
+  const f = $('#authForm', el); f.name.focus();
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    try { afterAdmit(await Store.claimAdmin(f.name.value.trim())); } catch (x) { $('#authErr').textContent = Cloud.friendly(x); }
+  };
+}
+function authNewPw(forced, then) {
+  const el = authFrame(`<h1>${forced ? 'Choose your password' : 'Change password'}</h1>${forced ? '<p class="hint">Pick a password only you know. 10+ characters; a short sentence works well.</p>' : ''}
+    <form id="authForm" class="auth-form">
+      ${pwField('pw', 'New password (10+ characters)', 'new-password')}
+      ${pwField('pw2', 'Type it again', 'new-password')}
+      <p class="auth-err" id="authErr" role="alert"></p>
+      <button class="btn btn-primary" type="submit">Save password</button>
+    </form>`);
+  const f = $('#authForm', el); f.pw.focus();
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const p = pwProblem(f.pw.value, (Store.me && Store.me.email) || Cloud.email);
+    if (p) { $('#authErr').textContent = p; return; }
+    if (f.pw.value !== f.pw2.value) { $('#authErr').textContent = 'The two passwords are different.'; return; }
+    try {
+      if (then) { await Cloud.setPassword(f.pw.value); toast('Password saved'); await then(); return; }
+      await Store.changeOwnPassword(f.pw.value); toast('Password saved'); enterApp();
+    } catch (x) { $('#authErr').textContent = Cloud.friendly(x); }
+  };
+}
+function afterAdmit(r) {
+  if (!r) return authLogin();
+  if (r.first) return authClaim(r.email);
+  if (r.error) return authLogin(r.error);
+  if (Store.me && Store.me.mustChange) return authNewPw(true);
+  enterApp();
+}
+function enterApp() {
+  $('#auth').hidden = true; $('#auth').innerHTML = ''; $('.app').hidden = false;
+  migrate();
+  lastRoute = location.hash.split('/').slice(0, 3).join('/');
+  render();
+}
+async function signOut() {
+  await Store.signOut();
+  ui.sel = null;
+  authLogin('Signed out.');
+}
+
+// ---------- Settings → Accounts (admins, online)
+async function loadAccounts() {
+  const box = $('#acct'); if (!box) return;
+  let list;
+  try { list = await Store.accounts(); } catch (e) { box.innerHTML = `<div class="card-b"><p class="auth-err">${esc(Cloud.friendly(e))}</p></div>`; return; }
+  const on = list.filter((a) => a.member), waiting = list.filter((a) => !a.member);
+  box.innerHTML = `<div class="list">${on.map((a) => { const u = a.member; return `<div class="srow ${u.disabled ? 'dimrow' : ''}"><span class="avatar sm" style="--av:${AV_COLORS[hash(a.id) % AV_COLORS.length]}">${esc(u.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase())}</span>
+      <span style="min-width:0"><b>${esc(u.name)}</b><small>${esc(a.email)} · ${ROLE_LABEL[u.role]}${u.disabled ? ' · off' : ''}${u.mustChange ? ' · temp password' : ''} · ${a.lastSignIn ? 'last in ' + fmtDate(a.lastSignIn.slice(0, 10), { day: 'numeric', month: 'short' }) : 'never signed in'}</small></span>
+      ${a.id === Store.me.id ? '<span class="pill mute">You</span>' : `<button class="btn btn-sm" type="button" data-action="acct" data-id="${a.id}">Manage</button>`}</div>`; }).join('')}
+    ${waiting.length ? `<div class="group-h"><span>Waiting for a role</span><span>${waiting.length}</span></div>${waiting.map((a) => `<div class="srow"><span class="avatar sm">?</span><span><b>${esc(a.email)}</b><small>Added ${fmtDate(a.created.slice(0, 10), { day: 'numeric', month: 'short' })}</small></span><button class="btn btn-primary btn-sm" type="button" data-action="acct" data-id="${a.id}">Give role</button></div>`).join('')}` : ''}</div>`;
+  ui.accounts = list;
+}
+function addAccountSteps() {
+  const url = (Cloud.cfg.dashboard || '') + '/auth/users';
+  $('#modal-root').innerHTML = `<div class="modal-back" data-action="modal-bg"><div class="modal narrow" role="dialog" aria-modal="true" aria-label="Add account">
+    <header><h3>Add account</h3><button type="button" class="icon-btn" data-action="modal-close" aria-label="Close">${icon('x')}</button></header>
+    <div class="modal-body"><ol class="steps">
+      <li>Open <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Supabase → Authentication → Users</a> (Thomas's Supabase login).</li>
+      <li><b>Add user</b> → <b>Send invitation</b> → type their email → <b>Invite</b>.</li>
+      <li>They tap the link in the email and choose their own password.</li>
+      <li>Come back here, press <b>Refresh</b>, then <b>Give role</b>.</li>
+    </ol><p class="hint">Nobody sends passwords. Each person picks their own.</p></div>
+    <footer><span class="grow"></span><button type="button" class="btn btn-primary" data-action="modal-close">Done</button></footer></div></div>`;
+}
+function accountForm(id) {
+  const a = (ui.accounts || []).find((x) => x.id === id); if (!a) return;
+  const u = a.member || { name: '', role: 'admin', mustChange: true }; // the club runs with four admins
+  const isNew = !a.member;
+  openForm({
+    title: isNew ? a.email : u.name, narrow: true, submitLabel: 'Save',
+    fields: [
+      { name: 'name', label: 'Name', value: u.name, required: true, span: true },
+      { name: 'role', label: 'Role', type: 'select', options: [['admin', 'Admin · everything, including accounts'], ['editor', 'Editor · squad, training, games only']], value: u.role, span: true },
+      { name: 'mustChange', label: 'Ask for a new password at next sign-in', type: 'select', options: [['1', 'Yes'], ['', 'No']], value: u.mustChange ? '1' : '', span: true },
+    ],
+    extraFoot: isNew ? '' : `<button type="button" class="btn" id="accReset">Send reset email</button><button type="button" class="btn ${u.disabled ? '' : 'btn-danger'}" id="accToggle">${u.disabled ? 'Switch on' : 'Switch off'}</button>`,
+    onSubmit: async (d) => {
+      await Store.setAccount(a.id, { name: d.name, role: d.role, mustChange: !!d.mustChange, disabled: !!u.disabled });
+      toast('Saved'); loadAccounts(); loadAudit();
+    },
+  });
+  const t = $('#accToggle');
+  if (t) t.onclick = async () => { try { await Store.setAccount(a.id, { name: u.name, role: u.role, mustChange: u.mustChange, disabled: !u.disabled }); closeModal(); toast(u.disabled ? 'Switched on' : 'Switched off'); loadAccounts(); } catch (x) { toast(Cloud.friendly(x), 'bad'); } };
+  const r = $('#accReset');
+  if (r) r.onclick = async () => { try { await Cloud.sendReset(a.email); closeModal(); toast(`Reset link emailed to ${a.email}`); } catch (x) { toast(Cloud.friendly(x), 'bad'); } };
+}
+async function loadAudit() {
+  const box = $('#audit'); if (!box) return;
+  try {
+    const rows = await Store.auditLog();
+    box.innerHTML = rows.length ? `<div class="scroll-x"><table class="t"><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead><tbody>${rows.slice(0, 120).map((r) => `<tr><td>${esc(new Date(r.ts).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(r.name || '')}</td><td style="white-space:normal">${esc(r.detail || r.action)}</td></tr>`).join('')}</tbody></table></div>` : empty('Nothing yet', '');
+  } catch (e) { box.innerHTML = `<div class="card-b"><p class="auth-err">${esc(Cloud.friendly(e))}</p></div>`; }
+}
+
+// coming back to the app after a while: fetch what the others changed (not while a form is open)
+document.addEventListener('visibilitychange', () => {
+  if (!Store.cloud || document.hidden || !Store.me || Date.now() - Store.lastPull < 120000) return;
+  if ($('#modal-root').innerHTML) return;
+  Store.pull().then(render).catch(() => {});
 });
-lastRoute = location.hash.split('/').slice(0, 3).join('/');
-render();
+window.addEventListener('cc-store', (e) => toast(e.detail.msg, e.detail.kind));
+window.addEventListener('beforeunload', (e) => { if (Store.cloud && Store.pending) { Store.saveNow(); e.preventDefault(); } });
+
+// ============ start ============
+function migrate() {
+  // Fees were dropped; older saves used fixed 11-a-side formations
+  delete db().payments; ['monthlyFee', 'currency', 'feeStart'].forEach((k) => delete db().club[k]);
+  db().matches.forEach((m) => {
+    if (!m.mode) m.mode = m.opponent ? 'opponent' : 'split';
+    if (m.formation) {
+      const shape = m.formation.replace(/^.*?(d[d-]*)$/, '$1');
+      const k = shape.split('-').reduce((a, b) => a + +b, 1);
+      if (SHAPES[k]?.includes('GK ' + shape)) { m.sideSize = m.sideSize || k; m.shapeA = m.shapeA || 'GK ' + shape; }
+      delete m.formation;
+    }
+  });
+}
+async function boot() {
+  if (!Store.cloud) { Store.load(); enterApp(); return; }
+  authFrame('<p class="hint">Connecting…</p>');
+  try {
+    const link = await Cloud.fromLink();
+    // invite / reset email: choose a password first, then carry on as a normal sign-in
+    if (link === 'invite' || link === 'recovery') return authNewPw(true, async () => { const r = await Store.admitLink(); if (r.ok) await Store.passwordSet(); afterAdmit(r); });
+    if (link) { afterAdmit(await Store.admitLink()); return; }
+    afterAdmit(await Store.resume());
+  } catch (e) { authLogin(Cloud.friendly(e)); }
+}
+boot();
+// offline shell, so the app opens with weak signal at the turf (data still needs the internet)
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

@@ -1,6 +1,7 @@
 // Daily keep-alive for the club's Supabase project (see keepalive.js). No web address of its own.
 {
   "name": "cc-keepalive",
+  "account_id": "72b9828fc50eb8beac260fb076f5b266", // Thomas (Dt2600@outlook.com)
   "main": "keepalive.js",
   "compatibility_date": "2026-10-01",
   "no_bundle": true,
@@ -10,8 +11,8 @@
   "triggers": { "crons": ["23 6 * * *"] },
   "observability": { "enabled": true },
   "vars": {
-    "DB_URL": "FILL_IN",
+    "DB_URL": "https://siyjeqesxyyyefpijssu.supabase.co",
     // the publishable key: public by design, the same one the app uses
-    "DB_KEY": "FILL_IN"
+    "DB_KEY": "sb_publishable_QKp8TqPc2-sA0-_sqIgyWg_BVJs-dvS"
   }
 }

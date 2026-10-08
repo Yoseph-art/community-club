@@ -22,8 +22,10 @@ Publish a change:
 
 ```
 node tools/build_site.mjs
-npx wrangler deploy --config ~/CC-site.wrangler.jsonc
+XDG_CONFIG_HOME=~/.cc-wrangler npx wrangler deploy --config ~/CC-site.wrangler.jsonc
 ```
+
+`~/.cc-wrangler` holds the Cloudflare login for Thomas's account, kept apart from TM's. Run the deploy from any folder except your home folder: a `.wrangler` folder in home breaks both logins.
 
 `build_site.mjs` copies only the app's own files, adds the security headers, and refuses to build if anything that looks like a phone number or real email is in them.
 
